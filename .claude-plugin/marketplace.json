@@ -1,0 +1,20 @@
+{
+  "name": "lecture-video-improve-skill",
+  "description": "Marketplace for the lecture-video-improver plugin: English text improvement plus a full batch lecture-video production pipeline (transcript cleanup, TTS, thumbnails, FFmpeg assembly, YouTube publish).",
+  "owner": {
+    "name": "Yanjun Qi"
+  },
+  "plugins": [
+    {
+      "name": "lecture-video-improver",
+      "source": {
+        "source": "git-subdir",
+        "url": "https://github.com/qiyanjun/lecture-video-improve-skill.git",
+        "path": "lecture-video-improver",
+        "ref": "main"
+      },
+      "description": "English text improvement plus a full batch video production pipeline (transcript cleanup, TTS, thumbnails, FFmpeg assembly, YouTube publish) for producing narrated lecture videos from raw recordings at series scale.",
+      "version": "0.15.2"
+    }
+  ]
+}

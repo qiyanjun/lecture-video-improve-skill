@@ -442,6 +442,16 @@ def main() -> int:
             "video_id": video_id_match.group(1) if video_id_match else None,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
+        # Write after EVERY job, not just once at the end -- a killed/crashed
+        # process (including the daily-cap self-stop below, or a plain Ctrl-C)
+        # would otherwise lose the log entirely for a run that had real,
+        # already-live successes in it. Confirmed this bug for real: an
+        # earlier version only wrote once at the end, and two manually-killed
+        # runs (before this fix existed) lost all 32 of their successful
+        # uploads from the log -- the videos were genuinely live on YouTube,
+        # just untracked, until reconstructed by hand from raw output logs.
+        log["updated_at"] = datetime.now(timezone.utc).isoformat()
+        log_path.write_text(json.dumps(log, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         if ok:
             success_count += 1
         else:
@@ -474,8 +484,6 @@ def main() -> int:
                 )
                 break
 
-    log["updated_at"] = datetime.now(timezone.utc).isoformat()
-    log_path.write_text(json.dumps(log, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"\nPublish complete: {success_count} succeeded, {fail_count} failed. Log: {log_path}")
     return 0 if fail_count == 0 else 1
 

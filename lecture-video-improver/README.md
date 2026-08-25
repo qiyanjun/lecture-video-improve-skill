@@ -4,6 +4,47 @@ Two capabilities in one plugin: **English text improvement** for scripts, transc
 
 ---
 
+## Plugin structure
+
+```
+lecture-video-improver/
+├── .claude-plugin/
+│   └── plugin.json                       ← manifest (name, version)
+├── README.md                             ← this file
+├── commands/
+│   ├── improve-script.md                 ← /improve-script slash command
+│   └── improve-subtitles.md              ← /improve-subtitles slash command
+├── skills/
+│   ├── english-improvement/              ← Part 1: text-only English polishing
+│   │   ├── SKILL.md
+│   │   └── references/improvement-guidelines.md
+│   └── build-video-voiceovers/           ← Part 2: full video production pipeline
+│       ├── SKILL.md                      ← when to use, boundaries, required workflow
+│       └── references/
+│           ├── transcript-and-tts.md
+│           └── assembly-and-batching.md
+└── scripts/                              ← every script below is called by its number
+    │                                        in "Step flow" below, or noted standalone
+    ├── run_stage1_improve.py             ← Stage 1 ORCHESTRATOR -- runs steps 0-6 for N videos
+    ├── resolve_youtube_source.py         ← step 0: download video / extract captions
+    ├── detect_fillers.py                 ← step 0 (pause only): pre-flag filler candidates
+    ├── chunk_transcript_with_timestamps.py  ← step 1: anchor cleaned script to exact timestamps
+    ├── measure_transcript_diff.py        ← step 2: lexical + semantic diff review
+    ├── generate_tts_fish.py              ← step 3: Fish Audio TTS
+    ├── generate_tts.py                   ← step 3: ElevenLabs TTS (same interface)
+    ├── generate_images.py                ← step 4: thumbnail + intro card (OpenAI)
+    ├── sync_segments.py                  ← step 5: per-chunk trim/freeze-extend + assemble
+    ├── qa_check.py                       ← step 6: post-assembly audit
+    ├── upload_to_youtube.py              ← Stage 2: single-video YouTube upload
+    ├── run_stage2_publish.py             ← Stage 2 ORCHESTRATOR: batch publish
+    ├── chunk_transcript.py               ← standalone (B-roll/no-source-recording case only)
+    ├── concat_audio.py                   ← standalone (B-roll/no-source-recording case only)
+    └── trim_video.py                     ← standalone (B-roll/no-source-recording case only)
+```
+
+---
+
+
 ## Part 1 — English Improvement
 
 Fix and polish English in any video-related text file.
@@ -118,22 +159,6 @@ steps 0–6 for every job in the manifest, tracking `completed` /
 |--------|-------|---------------|
 | `upload_to_youtube.py` | one video | Computes the "L**" title, requires `--confirmed-title` to match it character-for-character before `--execute` uploads anything. Defaults to `private`. |
 | `run_stage2_publish.py` | whole batch | Scans `output_base` for completed Stage 1 jobs, writes one `publish_plan.json` covering all of them, requires `--confirmed-plan` to content-hash-match the freshly recomputed plan before uploading any of them. |
-
-### Alternative path — narration over B-roll, no source recording
-
-`run_stage1_improve.py` does **not** support this case — there's no source
-recording to anchor timestamps against, so `sync_segments.py` doesn't apply.
-Three standalone scripts remain for it, run by hand:
-
-```
-cleaned_transcript.txt  →  chunk_transcript.py   →  chunks.json (character-count only,
-                                                      no timestamp mapping)
-chunks.json     →  generate_tts_fish.py (or generate_tts.py)  →  audio_parts/
-audio_parts/    →  concat_audio.py                    →  master_narration.wav
-source_video    →  trim_video.py                      →  trimmed.mp4  (optional cut pass)
-trimmed.mp4
-+ master_narration.wav  →  FFmpeg (manual mux)         →  final_video.mp4
-```
 
 ### Bundled scripts
 
@@ -393,42 +418,19 @@ standalone tool, not tied to this per-job layout. Follow the same `work/` +
 - `pip install pillow` (for thumbnail text overlay)
 - API keys set as environment variables
 
----
+### Alternative path — narration over B-roll, no source recording
 
-## Plugin structure
+`run_stage1_improve.py` does **not** support this case — there's no source
+recording to anchor timestamps against, so `sync_segments.py` doesn't apply.
+Three standalone scripts remain for it, run by hand:
 
 ```
-lecture-video-improver/
-├── .claude-plugin/
-│   └── plugin.json                       ← manifest (name, version)
-├── README.md                             ← this file
-├── commands/
-│   ├── improve-script.md                 ← /improve-script slash command
-│   └── improve-subtitles.md              ← /improve-subtitles slash command
-├── skills/
-│   ├── english-improvement/              ← Part 1: text-only English polishing
-│   │   ├── SKILL.md
-│   │   └── references/improvement-guidelines.md
-│   └── build-video-voiceovers/           ← Part 2: full video production pipeline
-│       ├── SKILL.md                      ← when to use, boundaries, required workflow
-│       └── references/
-│           ├── transcript-and-tts.md
-│           └── assembly-and-batching.md
-└── scripts/                              ← every script below is called by its number
-    │                                        in "Step flow" below, or noted standalone
-    ├── run_stage1_improve.py             ← Stage 1 ORCHESTRATOR -- runs steps 0-6 for N videos
-    ├── resolve_youtube_source.py         ← step 0: download video / extract captions
-    ├── detect_fillers.py                 ← step 0 (pause only): pre-flag filler candidates
-    ├── chunk_transcript_with_timestamps.py  ← step 1: anchor cleaned script to exact timestamps
-    ├── measure_transcript_diff.py        ← step 2: lexical + semantic diff review
-    ├── generate_tts_fish.py              ← step 3: Fish Audio TTS
-    ├── generate_tts.py                   ← step 3: ElevenLabs TTS (same interface)
-    ├── generate_images.py                ← step 4: thumbnail + intro card (OpenAI)
-    ├── sync_segments.py                  ← step 5: per-chunk trim/freeze-extend + assemble
-    ├── qa_check.py                       ← step 6: post-assembly audit
-    ├── upload_to_youtube.py              ← Stage 2: single-video YouTube upload
-    ├── run_stage2_publish.py             ← Stage 2 ORCHESTRATOR: batch publish
-    ├── chunk_transcript.py               ← standalone (B-roll/no-source-recording case only)
-    ├── concat_audio.py                   ← standalone (B-roll/no-source-recording case only)
-    └── trim_video.py                     ← standalone (B-roll/no-source-recording case only)
+cleaned_transcript.txt  →  chunk_transcript.py   →  chunks.json (character-count only,
+                                                      no timestamp mapping)
+chunks.json     →  generate_tts_fish.py (or generate_tts.py)  →  audio_parts/
+audio_parts/    →  concat_audio.py                    →  master_narration.wav
+source_video    →  trim_video.py                      →  trimmed.mp4  (optional cut pass)
+trimmed.mp4
++ master_narration.wav  →  FFmpeg (manual mux)         →  final_video.mp4
 ```
+

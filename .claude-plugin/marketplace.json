@@ -14,7 +14,7 @@
         "ref": "main"
       },
       "description": "English text improvement plus a full batch video production pipeline (transcript cleanup, TTS, thumbnails, FFmpeg assembly, YouTube publish) for producing narrated lecture videos from raw recordings at series scale.",
-      "version": "0.17.0"
+      "version": "0.17.1"
     }
   ]
 }

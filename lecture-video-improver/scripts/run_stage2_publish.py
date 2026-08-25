@@ -70,6 +70,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--jobs", help="Comma-separated job IDs to publish (default: all eligible)")
     parser.add_argument("--privacy", default="private", choices=["private", "unlisted", "public"],
                         help="Default: private, applied to every video in this run")
+    parser.add_argument("--made-for-kids", action="store_true",
+                         help="Declare every video as directed at children under 13 (disables comments/"
+                              "notifications/personalized ads). Default: NOT made for kids.")
     parser.add_argument("--title-prefix", default="",
                          help="Fixed text prepended to every video's title, e.g. a course/series name. "
                               "Truncates the lecture-specific part (never the prefix) to stay within "
@@ -306,6 +309,7 @@ def main() -> int:
         "default_language": args.default_language, "no_thumbnail": args.no_thumbnail,
         "playlist_title": args.playlist_title, "playlist_id": args.playlist_id,
         "no_playlist": args.no_playlist, "title_prefix": args.title_prefix, "title_style": args.title_style,
+        "made_for_kids": args.made_for_kids,
     }
 
     plan_path = output_base / "publish_plan.json"
@@ -333,7 +337,7 @@ def main() -> int:
         print("\nSkipped:")
         for s in skipped:
             print(f"  {s}")
-    print(f"\nPrivacy: {args.privacy}  |  Category: {args.category_id}  |  Language: {args.default_language}")
+    print(f"\nPrivacy: {args.privacy}  |  Made for kids: {args.made_for_kids}  |  Category: {args.category_id}  |  Language: {args.default_language}")
     print(f"Tags: {', '.join(tags) if tags else '(none)'}")
     if args.no_playlist:
         print("Playlist: none (--no-playlist)")
@@ -429,6 +433,8 @@ def main() -> int:
             cmd += ["--playlist-id", playlist_id]
         if not args.no_thumbnail and item["thumbnail"]:
             cmd += ["--thumbnail", item["thumbnail"]]
+        if args.made_for_kids:
+            cmd += ["--made-for-kids"]
         result = subprocess.run(cmd, capture_output=True, text=True)
         ok = result.returncode == 0
         output = (result.stdout + result.stderr).strip()

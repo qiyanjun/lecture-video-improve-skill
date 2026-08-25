@@ -123,6 +123,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--description", default="", help="Video description")
     parser.add_argument("--privacy", default="private", choices=["private", "unlisted", "public"],
                         help="Default: private (confirmed safe default -- never defaults to public)")
+    parser.add_argument("--made-for-kids", action="store_true",
+                         help="Declare as directed at children under 13 (YouTube requires every video to "
+                              "declare this one way or the other -- disables comments, notifications, and "
+                              "personalized ads if set). Default: NOT made for kids -- the correct default "
+                              "for this plugin's typical use case (course/lecture content), and the safer "
+                              "default in general since accidentally defaulting to 'made for kids' silently "
+                              "strips features rather than the reverse.")
     parser.add_argument("--playlist-id", default=None, help="Optional YouTube playlist ID to add the video to after upload")
     parser.add_argument("--category-id", default="27", help="YouTube video category ID (default: 27 = Education)")
     parser.add_argument("--tags", default=None, help="Comma-separated tags for discoverability, e.g. 'machine learning,UVA CS 4774'")
@@ -189,7 +196,7 @@ def get_authenticated_service(client_secrets: Path, token_file: Path):
 def upload_video(
     youtube, video_path: Path, title: str, description: str, privacy: str,
     playlist_id: str | None, category_id: str = "27", tags: list[str] | None = None,
-    default_language: str = "en", thumbnail: Path | None = None,
+    default_language: str = "en", thumbnail: Path | None = None, made_for_kids: bool = False,
 ) -> str:
     from googleapiclient.errors import HttpError
     from googleapiclient.http import MediaFileUpload
@@ -202,7 +209,7 @@ def upload_video(
         snippet["tags"] = tags
     body = {
         "snippet": snippet,
-        "status": {"privacyStatus": privacy},
+        "status": {"privacyStatus": privacy, "selfDeclaredMadeForKids": made_for_kids},
     }
     media = MediaFileUpload(str(video_path), chunksize=1024 * 1024 * 8, resumable=True)
     request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
@@ -289,6 +296,7 @@ def main() -> int:
     print(f"  Title:       {title}{'  (truncated to fit 100-char limit)' if title.endswith('…') else ''}")
     print(f"  Description: {args.description or '(none)'}")
     print(f"  Privacy:     {args.privacy}")
+    print(f"  Made for kids: {args.made_for_kids}")
     print(f"  Category:    {args.category_id}")
     print(f"  Tags:        {', '.join(tags) if tags else '(none)'}")
     print(f"  Language:    {args.default_language}")
@@ -318,7 +326,7 @@ def main() -> int:
     upload_video(
         youtube, args.video, title, args.description, args.privacy, args.playlist_id,
         category_id=args.category_id, tags=tags, default_language=args.default_language,
-        thumbnail=args.thumbnail,
+        thumbnail=args.thumbnail, made_for_kids=args.made_for_kids,
     )
     return 0
 

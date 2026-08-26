@@ -78,8 +78,11 @@ def parse_args() -> argparse.Namespace:
                               "Truncates the lecture-specific part (never the prefix) to stay within "
                               "YouTube's 100-char title limit if needed -- flagged per-video in the plan.")
     parser.add_argument("--course-url", default=None,
-                         help="Optional course website URL, appended to every video's description "
-                              "as a 'Course website:' line.")
+                         help="Optional course syllabus/website URL, appended to every video's "
+                              "description as a 'Course syllabus:' line.")
+    parser.add_argument("--course-description", default=None,
+                         help="Optional short course description, added right before the "
+                              "--course-url line (ignored if --course-url isn't set).")
     parser.add_argument("--title-style", default="verbose", choices=["verbose", "compact"],
                          help="verbose (default): 'L1: Topic - Module 2'. compact: 'L01-M2-Topic'.")
     parser.add_argument("--output-base", type=Path, default=None,
@@ -165,7 +168,8 @@ def extract_summary(text: str, max_chars: int = 350) -> str:
 def generate_description(
     job_id: str, lecture: str, module: str | None, module_count: int,
     output_base: Path, card_eyebrow: str | None, voice_id: str | None,
-    source_title: str | None = None, source_url: str | None = None, course_url: str | None = None,
+    source_title: str | None = None, source_url: str | None = None,
+    course_url: str | None = None, course_description: str | None = None,
 ) -> str:
     """Build a description genuinely derived from this job's own cleaned
     narration script -- not fabricated -- plus explicit lecture/module
@@ -199,7 +203,9 @@ def generate_description(
         lines += ["", cite, source_url]
 
     if course_url:
-        lines += ["", f"Course website: {course_url}"]
+        if course_description:
+            lines += ["", course_description]
+        lines += ["", f"Course syllabus: {course_url}"]
 
     return "\n".join(lines)
 
@@ -234,7 +240,7 @@ def read_voice_id(output_base: Path, job_id: str) -> str | None:
         return None
 
 
-def build_plan(manifest: dict, jobs_filter: set[str] | None, output_base_override: Path | None, title_prefix: str = "", title_style: str = "verbose", course_url: str | None = None) -> tuple[list[dict], list[str]]:
+def build_plan(manifest: dict, jobs_filter: set[str] | None, output_base_override: Path | None, title_prefix: str = "", title_style: str = "verbose", course_url: str | None = None, course_description: str | None = None) -> tuple[list[dict], list[str]]:
     output_base = output_base_override or Path(manifest.get("output_base", "output"))
     card_eyebrow = manifest.get("card_eyebrow")
     plan: list[dict] = []
@@ -269,7 +275,7 @@ def build_plan(manifest: dict, jobs_filter: set[str] | None, output_base_overrid
             job_id, str(lecture), str(module) if module else None,
             module_counts.get(str(lecture), 1), output_base, card_eyebrow, voice_id,
             source_title=job.get("_raw_title"), source_url=job.get("source_video_url"),
-            course_url=course_url,
+            course_url=course_url, course_description=course_description,
         )
         thumbnail = output_base / job_id / "work" / "assets" / "thumbnail.jpg"
         plan.append({
@@ -316,7 +322,7 @@ def main() -> int:
 
     jobs_filter = {j.strip() for j in args.jobs.split(",")} if args.jobs else None
     output_base = args.output_base or Path(manifest.get("output_base", "output"))
-    plan, skipped = build_plan(manifest, jobs_filter, args.output_base, args.title_prefix, args.title_style, args.course_url)
+    plan, skipped = build_plan(manifest, jobs_filter, args.output_base, args.title_prefix, args.title_style, args.course_url, args.course_description)
 
     tags = [t.strip() for t in args.tags.split(",")] if args.tags else None
     settings = {

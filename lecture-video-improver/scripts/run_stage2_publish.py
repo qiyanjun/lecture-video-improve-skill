@@ -220,7 +220,7 @@ def generate_description(
     if course_url:
         if course_description:
             lines += ["", course_description]
-        lines += ["", f"Course syllabus: {normalize_url(course_url)}"]
+        lines += ["", "Course syllabus:", normalize_url(course_url)]
 
     return "\n".join(lines)
 

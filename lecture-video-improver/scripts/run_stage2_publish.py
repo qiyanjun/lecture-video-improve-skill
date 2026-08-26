@@ -150,6 +150,21 @@ def describe_voice(voice_id: str | None) -> str | None:
     return label
 
 
+def normalize_url(url: str) -> str:
+    """Collapse redundant consecutive slashes in the path (e.g. a copy-paste
+    artifact like "example.com/a//b/" -> "example.com/a/b/"), without
+    touching the "://" after the scheme. Confirmed directly: YouTube's
+    description auto-linkifier failed to make a URL clickable when it
+    contained a stray double slash mid-path, even though the URL itself
+    resolved fine (HTTP 200) either way -- a URL that WORKS is not the same
+    as a URL YouTube will render as a clickable link."""
+    match = re.match(r"^([a-zA-Z][a-zA-Z0-9+.-]*://)(.*)$", url)
+    if not match:
+        return url
+    scheme, rest = match.groups()
+    return scheme + re.sub(r"/{2,}", "/", rest)
+
+
 def extract_summary(text: str, max_chars: int = 350) -> str:
     """Sentence-boundary-aware truncation of narration text into a short
     summary -- never cuts mid-sentence, so it reads naturally."""
@@ -200,12 +215,12 @@ def generate_description(
 
     if source_url:
         cite = f'Original lecture recording: "{source_title}"' if source_title else "Original lecture recording:"
-        lines += ["", cite, source_url]
+        lines += ["", cite, normalize_url(source_url)]
 
     if course_url:
         if course_description:
             lines += ["", course_description]
-        lines += ["", f"Course syllabus: {course_url}"]
+        lines += ["", f"Course syllabus: {normalize_url(course_url)}"]
 
     return "\n".join(lines)
 

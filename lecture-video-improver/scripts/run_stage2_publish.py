@@ -499,29 +499,41 @@ def main() -> int:
         else:
             fail_count += 1
             print(f"  ✗ FAILED", file=sys.stderr)
-            if "uploadLimitExceeded" in output:
-                # YouTube's account-level daily upload count cap -- separate from API
-                # quota (videos.insert costs 1 unit with its own 100/day bucket) and
-                # unrelated to OAuth scope. Verified directly on a real 71-video batch:
-                # hit after 7 uploads on an unverified channel, then again after 25
-                # more on the SAME channel right after phone verification (~32/day
-                # observed total) -- verification raises the cap, doesn't remove it.
-                # It resets on its own (observed ~24h); retrying immediately just
-                # reproduces the same failure for every remaining job. Stop here
-                # instead of burning through the rest of the batch on a guaranteed
-                # failure -- every job after this one would fail identically.
+            # Two DISTINCT self-stop conditions, both meaning "every remaining
+            # job will fail identically right now, stop instead of burning
+            # through the batch": the account-level daily upload count cap,
+            # and the general YouTube Data API quota (10,000 units/day,
+            # shared pool, resets at midnight Pacific -- separate from the
+            # upload cap's own 100/day videos.insert bucket). Missed the
+            # quota case on the first pass of this fix -- confirmed for
+            # real: a later run kept attempting (and failing) every
+            # remaining job on quotaExceeded instead of stopping, the exact
+            # bug this uploadLimitExceeded check was written to prevent.
+            stop_reasons = {
+                "uploadLimitExceeded": (
+                    "YouTube's daily upload limit (uploadLimitExceeded) -- an account-level cap. "
+                    "Verified directly on a real 71-video batch: hit after 7 uploads on an "
+                    "unverified channel, then again after 25 more right after phone verification "
+                    "(~32/day observed total) -- verification raises the cap, doesn't remove it. "
+                    "Resets on its own (observed ~24h)"
+                ),
+                "quotaExceeded": (
+                    "YouTube Data API quota exhausted (quotaExceeded) -- the shared 10,000-unit/day "
+                    "pool, resets at midnight Pacific"
+                ),
+            }
+            matched_reason = next((r for r in stop_reasons if r in output), None)
+            if matched_reason:
                 remaining = [p["job_id"] for p in plan[index:]]
                 remaining_path = output_base / "remaining_upload_jobs.json"
                 remaining_path.write_text(json.dumps(remaining, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
                 playlist_note = f" and --playlist-id {playlist_id}" if playlist_id else ""
                 print(
-                    f"\nDetected YouTube's daily upload limit (uploadLimitExceeded) -- an "
-                    f"account-level cap, not something retrying right now will fix. Stopping "
-                    f"here rather than attempting the remaining {len(remaining)} job(s), which "
-                    f"would all fail the same way.\n"
-                    f"Saved the remaining job IDs to {remaining_path}. Once the cap has reset "
-                    f"(observed ~24h), resume with --jobs set to those IDs{playlist_note} to "
-                    f"keep adding to the same playlist.",
+                    f"\nDetected {stop_reasons[matched_reason]}, not something retrying right now "
+                    f"will fix. Stopping here rather than attempting the remaining "
+                    f"{len(remaining)} job(s), which would all fail the same way.\n"
+                    f"Saved the remaining job IDs to {remaining_path}. Once it clears, resume "
+                    f"with --jobs set to those IDs{playlist_note} to keep adding to the same playlist.",
                     file=sys.stderr,
                 )
                 break

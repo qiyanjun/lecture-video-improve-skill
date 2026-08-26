@@ -144,20 +144,40 @@ def main() -> int:
             thumb_log_path.write_text(json.dumps(thumb_log, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
             set_count += 1
         except HttpError as error:
+            error_str = str(error)
+            # Two DISTINCT self-stop conditions, both meaning "every remaining
+            # thumbnail will fail identically right now, stop instead of
+            # burning through the list": the thumbnail-specific rate limit,
+            # and the general YouTube Data API quota (10,000 units/day,
+            # shared pool, resets at midnight Pacific). Missed the quota case
+            # on the first pass -- confirmed for real: it kept attempting
+            # (and failing) every remaining thumbnail instead of stopping,
+            # exactly the bug already fixed once for uploadLimitExceeded in
+            # run_stage2_publish.py. Both must be handled the same way.
+            stop_reasons = {
+                "uploadRateLimitExceeded": (
+                    "thumbnail rate limit hit again (HTTP 429 uploadRateLimitExceeded) -- an "
+                    "undocumented rolling ~24h-per-channel window, not something retrying right "
+                    "now will fix"
+                ),
+                "quotaExceeded": (
+                    "YouTube Data API quota exhausted (quotaExceeded) -- the shared 10,000-unit/day "
+                    "pool, resets at midnight Pacific"
+                ),
+            }
+            matched_reason = next((r for r in stop_reasons if r in error_str), None)
             thumb_log["jobs"][job_id] = {
-                "status": "rate_limited" if "uploadRateLimitExceeded" in str(error) else "failed",
-                "video_id": video_id, "error": str(error)[:500],
+                "status": "rate_limited" if matched_reason else "failed",
+                "video_id": video_id, "error": error_str[:500],
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
             thumb_log_path.write_text(json.dumps(thumb_log, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-            if "uploadRateLimitExceeded" in str(error):
+            if matched_reason:
                 remaining = len(candidates) - set_count - 1
                 print(
-                    f"\n{job_id}: thumbnail rate limit hit again (HTTP 429 uploadRateLimitExceeded) "
-                    f"-- an undocumented rolling ~24h-per-channel window, not something retrying "
-                    f"right now will fix. Stopping here rather than attempting the remaining "
-                    f"{remaining} thumbnail(s), which would fail the same way. Re-run this script "
-                    f"later once the window clears.",
+                    f"\n{job_id}: {stop_reasons[matched_reason]}. Stopping here rather than "
+                    f"attempting the remaining {remaining} thumbnail(s), which would fail the "
+                    f"same way. Re-run this script later once it clears.",
                     file=sys.stderr,
                 )
                 print(f"\n{set_count}/{len(candidates)} thumbnails set this run.")

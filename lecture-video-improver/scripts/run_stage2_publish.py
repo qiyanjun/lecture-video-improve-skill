@@ -218,9 +218,11 @@ def generate_description(
         lines += ["", cite, normalize_url(source_url)]
 
     if course_url:
+        # Syllabus link comes right after the raw-recording link (no other
+        # text between them); the course blurb, if any, comes after that.
+        lines += ["", "Course syllabus:", normalize_url(course_url)]
         if course_description:
             lines += ["", course_description]
-        lines += ["", "Course syllabus:", normalize_url(course_url)]
 
     return "\n".join(lines)
 

@@ -479,7 +479,18 @@ def main() -> int:
         for line in output.splitlines():
             print(f"  {line}")
 
-        video_id_match = re.search(r"watch\?v=([\w-]+)", output)
+        # Real bug, found for real: a plain "watch\?v=([\w-]+)" search matches
+        # the FIRST such URL anywhere in the combined output -- and once
+        # descriptions started citing the source recording (its own
+        # youtube.com/watch?v=... URL, printed as part of the "Plan:" preview
+        # BEFORE the real upload even happens), that citation's video ID won
+        # over the actual "Uploaded: https://youtube.com/watch?v=..."
+        # confirmation line further down. Recorded the SOURCE recording's ID
+        # as this job's own video_id for every job uploaded after the
+        # citation feature shipped -- confirmed on a real 13-video batch,
+        # each one wrong. Anchored to the literal "Uploaded: " prefix so it
+        # can only match the real confirmation line.
+        video_id_match = re.search(r"Uploaded: https://youtube\.com/watch\?v=([\w-]+)", output)
         log["jobs"][job_id] = {
             "status": "published" if ok else "failed",
             "title": item["title"],

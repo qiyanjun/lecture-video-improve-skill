@@ -1,6 +1,6 @@
 {
   "name": "lecture-video-improver",
-  "version": "0.17.7",
+  "version": "0.17.8",
   "description": "English text improvement for scripts/transcripts/subtitles, plus a full batch video production pipeline (transcript cleanup, TTS, thumbnails, FFmpeg assembly, YouTube publish) for producing narrated videos from raw recordings at series scale.",
   "author": {
     "name": "Yanjun Qi"

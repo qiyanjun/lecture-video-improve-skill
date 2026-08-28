@@ -252,11 +252,25 @@ def upload_video(
     print(f"Uploaded: https://youtube.com/watch?v={video_id}  (privacy: {privacy})")
 
     if playlist_id:
-        youtube.playlistItems().insert(
-            part="snippet",
-            body={"snippet": {"playlistId": playlist_id, "resourceId": {"kind": "youtube#video", "videoId": video_id}}},
-        ).execute()
-        print(f"Added to playlist: {playlist_id}")
+        # Non-fatal, same principle as the thumbnail step below: the video
+        # itself already exists by this point (videos.insert succeeded above).
+        # A failure here (e.g. quotaExceeded hitting mid-batch) used to
+        # propagate uncaught, crashing the whole process and causing the
+        # caller to mark an already-live video "failed" -- orphaning it
+        # (untracked, absent from the playlist) and inviting a duplicate
+        # re-upload on the next retry. Confirmed this exact failure mode
+        # produced one real orphaned duplicate in production (L22-M2) before
+        # this fix.
+        try:
+            youtube.playlistItems().insert(
+                part="snippet",
+                body={"snippet": {"playlistId": playlist_id, "resourceId": {"kind": "youtube#video", "videoId": video_id}}},
+            ).execute()
+            print(f"Added to playlist: {playlist_id}")
+        except HttpError as error:
+            print(f"  Warning: playlist add failed (video itself still uploaded fine, "
+                  f"video_id={video_id}): HTTP {error.resp.status}. Add it to the playlist "
+                  f"manually or on a retry pass.", file=sys.stderr)
 
     if thumbnail and thumbnail.is_file():
         # Non-fatal: custom thumbnails require a phone-verified YouTube channel

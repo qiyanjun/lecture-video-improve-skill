@@ -1,6 +1,10 @@
 # lecture-video-improve-skill
 
+<img src="lecture-video-improver/assets/icon.png" alt="lecture-video-improver icon" width="96" height="96">
+
 A Claude Code plugin (and standalone script toolkit) for turning raw lecture recordings into polished, narrated videos: transcript cleanup, TTS re-narration (Fish Audio or ElevenLabs), FFmpeg assembly, thumbnails/intro cards, an optional spoken welcome message, and YouTube publishing — orchestrated for one video or a whole series at once.
+
+![Pipeline overview: Stage 1 (resolve source, clean + chunk, diff review, TTS narration, thumbnail + card, sync assemble, QA audit) feeds a human review gate, then Stage 2 (confirm exact title, upload to YouTube, playlist + thumbnail)](lecture-video-improver/assets/pipeline-diagram.svg)
 
 The actual plugin lives in [`lecture-video-improver/`](./lecture-video-improver) — see [its README](./lecture-video-improver/README.md) for full documentation (setup, API keys, voice ID selection, job manifest schema, every bundled script, and the version history). This root README only covers **installing and running it**.
 

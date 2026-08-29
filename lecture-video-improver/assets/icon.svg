@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#16213E"/>
+      <stop offset="100%" stop-color="#0B1120"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="256" height="256" rx="48" fill="url(#bg)"/>
+
+  <!-- waveform, representing narration/audio -->
+  <g stroke="#EAF0FA" stroke-width="7" stroke-linecap="round" opacity="0.55">
+    <line x1="52" y1="128" x2="52" y2="128"/>
+    <line x1="66" y1="112" x2="66" y2="144"/>
+    <line x1="80" y1="96"  x2="80" y2="160"/>
+    <line x1="94" y1="120" x2="94" y2="136"/>
+  </g>
+
+  <!-- play triangle, representing the finished video -->
+  <path d="M112,72 L196,128 L112,184 Z" fill="#E57200"/>
+
+  <!-- small orange accent rule, matching the series card branding -->
+  <rect x="52" y="196" width="60" height="7" rx="3.5" fill="#E57200"/>
+</svg>

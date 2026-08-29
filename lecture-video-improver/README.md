@@ -1,6 +1,10 @@
 # Lecture Video Improver
 
+<img src="assets/icon.png" alt="lecture-video-improver icon" width="96" height="96">
+
 Two capabilities in one plugin: **English text improvement** for scripts, transcripts, and subtitle files, and a complete **batch video production pipeline** — transcript cleanup, TTS via Fish Audio or ElevenLabs, AI thumbnail generation, FFmpeg assembly, all orchestrated for N videos at once.
+
+![Pipeline overview: Stage 1 (resolve source, clean + chunk, diff review, TTS narration, thumbnail + card, sync assemble, QA audit) feeds a human review gate, then Stage 2 (confirm exact title, upload to YouTube, playlist + thumbnail)](assets/pipeline-diagram.svg)
 
 ---
 
@@ -182,6 +186,10 @@ steps 0–6 for every job in the manifest, tracking `completed` /
 | `upload_to_youtube.py` | 2 | **New in 0.7.0.** Uploads one finished video to YouTube with "L**" lecture-numbering title formatting (`L1: Topic` or `L1: Topic - Module 2`, or `L01-M2-Topic` with `--title-style compact`). Hard-fails unless `--confirmed-title` matches the computed title exactly. Defaults to `private` visibility. **0.16.0: added retry/backoff on transient upload failures** (resumable upload was already in place but had no retry on dropped connections/5xx -- see below), **category/tags/language/thumbnail/`--title-prefix`**, and **the OAuth scope now requests full `youtube` manage** (was `youtube.upload`-only, which doesn't cover playlists -- see below). **0.17.1: every upload now explicitly declares `selfDeclaredMadeForKids`** (default `false` -- YouTube requires every video to declare this one way or the other; `--made-for-kids` to opt in for content that's actually directed at children). **0.17.9: the playlist-add step is now non-fatal**, matching the thumbnail-set step -- a failure there no longer crashes the upload and orphans an already-live video (see below). | OAuth2 (Google Cloud project + one-time browser consent) |
 | `run_stage2_publish.py` | 2 | **New in 0.8.0.** Batch version of `upload_to_youtube.py`'s confirmation gate: one dry-run computes every video's title (+ auto-generated description, voice, thumbnail) across the whole batch into `publish_plan.json`, one user confirmation covers all of them, then `--execute --confirmed-plan` re-verifies the plan is still byte-identical (via content hash over both the per-video plan AND run-level settings) before uploading anything. **0.16.0: added playlist creation/assignment** (`--playlist-title`/`--playlist-id`), **auto-generated per-video descriptions** derived from each job's own `cleaned_script.json` plus the actual TTS voice used (read from `tts_manifest.json`, not assumed), and **`--output-base`** to publish from a different generated-output directory without editing the manifest. **0.16.1: detects YouTube's daily upload cap and stops itself** instead of attempting every remaining job on a guaranteed failure. **0.17.0: `publish_log.json` now writes after every job**, not just once at the end (see below). | same as `upload_to_youtube.py` |
 | `retry_thumbnails.py` | 2 | **New in 0.17.0.** Standalone companion to `run_stage2_publish.py` for YouTube's custom-thumbnail rate limit (`uploadRateLimitExceeded`, HTTP 429) -- an undocumented, rolling ~24h-per-channel window, separate from and slower to clear than the daily upload cap. Reads `publish_log.json` for already-published jobs' video IDs, retries setting each one's thumbnail, tracks success in `thumbnail_log.json` so re-runs skip already-set ones, and stops itself immediately on the first rate-limit hit rather than burning through the rest on guaranteed failures. | same as `upload_to_youtube.py` |
+
+### Why the 0.17.10 changes exist
+
+- **Added a visual identity**: `assets/icon.png`/`icon.svg` (a compact waveform + play-button mark, referenced from `plugin.json`/`marketplace.json` as `icon`) and `assets/pipeline-diagram.svg` (a two-stage schematic of the whole Improve → human review → Publish flow, embedded at the top of this README). Documentation/branding only -- no script behavior changed.
 
 ### Why the 0.17.9 changes exist
 

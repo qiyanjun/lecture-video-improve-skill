@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#16213E"/>
+    </marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#EAF0FA"/>
+      <stop offset="100%" stop-color="#DCE6F5"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="560" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="40" y="50" font-size="30" font-weight="700" fill="#16213E">lecture-video-improver</text>
+  <text x="40" y="76" font-size="15" fill="#3b4a6b">Claude Code Agent Skill — raw recording in, published narrated course out</text>
+
+  <!-- Stage 1 lane -->
+  <rect x="30" y="105" width="1140" height="200" rx="14" fill="#FFFFFF" stroke="#E57200" stroke-width="1.5" opacity="0.9"/>
+  <text x="55" y="135" font-size="17" font-weight="700" fill="#E57200">STAGE 1 · Improve (local only)</text>
+
+  <!-- Stage 1 boxes -->
+  <g font-size="12.5" fill="#16213E">
+    <!-- box template: x, y, w=140, h=64 -->
+    <g>
+      <rect x="55" y="155" width="140" height="64" rx="8" fill="#16213E"/>
+      <text x="125" y="180" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">Resolve source</text>
+      <text x="125" y="198" font-size="10.5" fill="#DCE6F5" text-anchor="middle">video + transcript</text>
+      <text x="125" y="212" font-size="10.5" fill="#DCE6F5" text-anchor="middle">(local or YouTube)</text>
+    </g>
+    <g>
+      <rect x="215" y="155" width="140" height="64" rx="8" fill="#16213E"/>
+      <text x="285" y="180" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">Clean + chunk</text>
+      <text x="285" y="198" font-size="10.5" fill="#DCE6F5" text-anchor="middle">filler removal,</text>
+      <text x="285" y="212" font-size="10.5" fill="#DCE6F5" text-anchor="middle">timestamp-anchored</text>
+    </g>
+    <g>
+      <rect x="375" y="155" width="140" height="64" rx="8" fill="#16213E"/>
+      <text x="445" y="180" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">Diff review</text>
+      <text x="445" y="198" font-size="10.5" fill="#DCE6F5" text-anchor="middle">lexical + semantic</text>
+      <text x="445" y="212" font-size="10.5" fill="#DCE6F5" text-anchor="middle">change quantified</text>
+    </g>
+    <g>
+      <rect x="535" y="155" width="140" height="64" rx="8" fill="#E57200"/>
+      <text x="605" y="180" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">TTS narration</text>
+      <text x="605" y="198" font-size="10.5" fill="#FFE6CC" text-anchor="middle">Fish Audio /</text>
+      <text x="605" y="212" font-size="10.5" fill="#FFE6CC" text-anchor="middle">ElevenLabs, any voice</text>
+    </g>
+    <g>
+      <rect x="695" y="155" width="140" height="64" rx="8" fill="#16213E"/>
+      <text x="765" y="180" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">Thumbnail + card</text>
+      <text x="765" y="198" font-size="10.5" fill="#DCE6F5" text-anchor="middle">consistent branding</text>
+      <text x="765" y="212" font-size="10.5" fill="#DCE6F5" text-anchor="middle">across a series</text>
+    </g>
+    <g>
+      <rect x="855" y="155" width="140" height="64" rx="8" fill="#16213E"/>
+      <text x="925" y="180" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">Sync assemble</text>
+      <text x="925" y="198" font-size="10.5" fill="#DCE6F5" text-anchor="middle">per-chunk trim /</text>
+      <text x="925" y="212" font-size="10.5" fill="#DCE6F5" text-anchor="middle">freeze-extend, mux</text>
+    </g>
+    <g>
+      <rect x="1015" y="155" width="140" height="64" rx="8" fill="#16213E"/>
+      <text x="1085" y="180" font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">QA audit</text>
+      <text x="1085" y="198" font-size="10.5" fill="#DCE6F5" text-anchor="middle">A/V sync, loudness,</text>
+      <text x="1085" y="212" font-size="10.5" fill="#DCE6F5" text-anchor="middle">duration checks</text>
+    </g>
+  </g>
+
+  <!-- arrows stage 1 -->
+  <g stroke="#16213E" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M195,187 L213,187"/>
+    <path d="M355,187 L373,187"/>
+    <path d="M515,187 L533,187"/>
+    <path d="M675,187 L693,187"/>
+    <path d="M835,187 L853,187"/>
+    <path d="M995,187 L1013,187"/>
+  </g>
+
+  <text x="55" y="285" font-size="12.5" fill="#3b4a6b" font-style="italic">→ output: a locally-reviewable final video. Nothing here touches any publishing platform.</text>
+
+  <!-- Human review gate -->
+  <g>
+    <polygon points="600,320 660,345 600,370 540,345" fill="#FFFFFF" stroke="#16213E" stroke-width="2"/>
+    <text x="600" y="341" font-size="11.5" font-weight="700" fill="#16213E" text-anchor="middle">Human</text>
+    <text x="600" y="355" font-size="11.5" font-weight="700" fill="#16213E" text-anchor="middle">review</text>
+  </g>
+  <path d="M600,305 L600,318" stroke="#16213E" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  <path d="M600,372 L600,388" stroke="#16213E" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Stage 2 lane -->
+  <rect x="30" y="395" width="1140" height="140" rx="14" fill="#FFFFFF" stroke="#16213E" stroke-width="1.5" opacity="0.9"/>
+  <text x="55" y="425" font-size="17" font-weight="700" fill="#16213E">STAGE 2 · Publish</text>
+
+  <g font-size="12.5" fill="#fff">
+    <rect x="330" y="445" width="180" height="60" rx="8" fill="#16213E"/>
+    <text x="420" y="470" font-size="12.5" font-weight="700" text-anchor="middle">Confirm exact title</text>
+    <text x="420" y="487" font-size="10.5" fill="#DCE6F5" text-anchor="middle">hard confirmation gate</text>
+
+    <rect x="530" y="445" width="180" height="60" rx="8" fill="#E57200"/>
+    <text x="620" y="470" font-size="12.5" font-weight="700" text-anchor="middle">Upload to YouTube</text>
+    <text x="620" y="487" font-size="10.5" fill="#FFE6CC" text-anchor="middle">1 video or N-video batch</text>
+
+    <rect x="730" y="445" width="180" height="60" rx="8" fill="#16213E"/>
+    <text x="820" y="470" font-size="12.5" font-weight="700" text-anchor="middle">Playlist + thumbnail</text>
+    <text x="820" y="487" font-size="10.5" fill="#DCE6F5" text-anchor="middle">self-stops on rate limits</text>
+  </g>
+  <g stroke="#16213E" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M510,475 L528,475"/>
+    <path d="M710,475 L728,475"/>
+  </g>
+
+  <text x="1160" y="550" font-size="11" fill="#6b7a99" text-anchor="end">github.com/qiyanjun/lecture-video-improve-skill</text>
+</svg>
